@@ -1,0 +1,133 @@
+Set up Jobs listing on map page READ ME
+Set Up Angular Project:
+First, create a new Angular project if you haven't already:
+bash
+Copy code
+ng new real-estate-listings
+cd real-estate-listings
+Install Google Maps JavaScript API:
+Add the Google Maps JavaScript API to your index.html file:
+html
+Copy code
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Real Estate Listings</title>
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>
+Replace YOUR_API_KEY with your actual Google Maps API key.
+
+Create a Service to Fetch Listings:
+Create a service to fetch real estate listings from a backend API. For simplicity, let's mock some sample data:
+typescript
+Copy code
+// listings.service.ts
+import { Injectable } from '@angular/core';
+import { Observable, of } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class ListingsService {
+
+  constructor() { }
+
+  getRealEstateListings(): Observable<any[]> {
+    // Mocked sample data
+    const listings = [
+      { id: 1, lat: -33.867, lng: 151.206, address: 'Sydney, Australia', price: '$500,000' },
+      { id: 2, lat: -37.813, lng: 144.963, address: 'Melbourne, Australia', price: '$600,000' },
+      // Add more listings as needed
+    ];
+    return of(listings);
+  }
+}
+Create a Component to Display Listings on Google Maps:
+Create a component to display the Google Maps view and real estate listings:
+typescript
+Copy code
+// listings.component.ts
+import { Component, OnInit } from '@angular/core';
+import { ListingsService } from './listings.service';
+
+@Component({
+  selector: 'app-listings',
+  templateUrl: './listings.component.html',
+  styleUrls: ['./listings.component.css']
+})
+export class ListingsComponent implements OnInit {
+  map: google.maps.Map;
+  listings: any[];
+
+  constructor(private listingsService: ListingsService) { }
+
+  ngOnInit(): void {
+    this.listingsService.getRealEstateListings().subscribe(listings => {
+      this.listings = listings;
+      this.initMap();
+      this.addMarkers();
+    });
+  }
+
+  initMap(): void {
+    this.map = new google.maps.Map(document.getElementById('map'), {
+      center: { lat: -25.344, lng: 131.036 },
+      zoom: 4
+    });
+  }
+
+  addMarkers(): void {
+    this.listings.forEach(listing => {
+      const marker = new google.maps.Marker({
+        position: { lat: listing.lat, lng: listing.lng },
+        map: this.map,
+        title: listing.address
+      });
+    });
+  }
+}
+Create the HTML Template:
+html
+Copy code
+<!-- listings.component.html -->
+<div id="map" style="height: 500px;"></div>
+Styling (Optional):
+css
+Copy code
+/* listings.component.css */
+#map {
+  width: 100%;
+}
+App Module:
+Add the necessary imports and providers to your app.module.ts:
+typescript
+Copy code
+// app.module.ts
+import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { HttpClientModule } from '@angular/common/http';
+
+import { AppComponent } from './app.component';
+import { ListingsComponent } from './listings.component';
+import { ListingsService } from './listings.service';
+
+@NgModule({
+  declarations: [
+    AppComponent,
+    ListingsComponent
+  ],
+  imports: [
+    BrowserModule,
+    HttpClientModule
+  ],
+  providers: [ListingsService],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }

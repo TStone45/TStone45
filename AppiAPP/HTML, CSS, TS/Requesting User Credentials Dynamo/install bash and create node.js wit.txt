@@ -1,0 +1,5 @@
+install bash and create node.js with Express.js
+mkdir login-api
+cd login-api
+npm init -y
+npm install express aws-sdk dotenv

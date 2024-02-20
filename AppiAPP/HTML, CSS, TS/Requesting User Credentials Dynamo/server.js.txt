@@ -1,0 +1,52 @@
+server.js
+const express = require('express');
+const AWS = require('aws-sdk');
+const dotenv = require('dotenv');
+
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Configure AWS SDK with your credentials and region
+AWS.config.update({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION
+});
+
+// Create a DynamoDB document client
+const dynamodb = new AWS.DynamoDB.DocumentClient();
+
+// Define a route to handle login requests
+app.get('/login', async (req, res) => {
+  const { username, password } = req.query;
+
+  // Define the parameters for the DynamoDB query
+  const params = {
+    TableName: process.env.DYNAMODB_TABLE,
+    Key: {
+      username: username
+    }
+  };
+
+  try {
+    // Retrieve user data from DynamoDB
+    const data = await dynamodb.get(params).promise();
+
+    // Check if the user exists and the password matches
+    if (data.Item && data.Item.password === password) {
+      res.status(200).json({ message: 'Login successful' });
+    } else {
+      res.status(401).json({ message: 'Invalid username or password' });
+    }
+  } catch (error) {
+    console.error('Error retrieving user data:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Start the server
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
